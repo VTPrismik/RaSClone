@@ -1,19 +1,19 @@
 local inputs = {}
-local pressed_keys = {}
-local pressed_buttons = {}
+local pressedkeys = {}
+local pressedbuttons = {}
 local joystick = love.joystick.getJoysticks()[1]
 
 function normalize(vector)
-    local length = math.sqrt(vector.x^2 + vector.y^2)
-    if length > 0 then
+    local length = math.sqrt(vector.x ^ 2 + vector.y ^ 2)
+    if length > 0.7 then
         return {x = vector.x / length, y = vector.y / length}
     else
-        return {x = 0, y = 0}
+        return vector
     end
 end
 
-function inputs.button_pressed (button, input_mode)
-    for _, value in ipairs(inputs.get_current_inputs(input_mode)) do
+function inputs.button_pressed (button, inputmode)
+    for _, value in ipairs(inputs.get_current_inputs(inputmode)) do
         if value == button then
             return true
         else
@@ -32,43 +32,44 @@ end
 
     local keyboard_action_map = {
         ["space"] = "basic",
-        ["j"] = "ability 1",
-        ["k"] = "ability 2",
-        ["l"] = "ability 3",
+        ["z"] = "ability 1",
+        ["x"] = "ability 2",
+        ["c"] = "ability 3",
         ["q"] = "extra 1",
         ["e"] = "extra 2",
-        ["r"] = "extra 3",
+        ["v"] = "ult",
         ["f"] = "interact",
+        -- Keyboard Specific
         ["f11"] = "fullscreen",
         ["f10"] = "debug"
     }
 
     function love.keypressed(key)
-        pressed_keys[key] = true
+        pressedkeys[key] = true
     end
 
     function love.keyreleased(key)
-        pressed_keys[key] = nil
+        pressedkeys[key] = nil
     end
 
     function keyboard_inputs()
-        local current_direction = {x = 0, y = 0}
-        local current_actions = {}
+        local currentdirection = {x = 0, y = 0}
+        local currentactions = {}
 
         for key, direction in pairs(keyboard_movement_map) do
-            if pressed_keys[key] then
-                current_direction.x = current_direction.x + direction.x
-                current_direction.y = current_direction.y + direction.y
+            if pressedkeys[key] then
+                currentdirection.x = currentdirection.x + direction.x
+                currentdirection.y = currentdirection.y + direction.y
             end
         end
 
         for key, action in pairs(keyboard_action_map) do
-            if pressed_keys[key] then
-                table.insert(current_actions, action)
+            if pressedkeys[key] then
+                table.insert(currentactions, action)
             end
         end
 
-        return current_actions, normalize(current_direction)
+        return currentactions, normalize(currentdirection)
     end
 
 -- Controller Map
@@ -79,25 +80,25 @@ end
         ["b"] = "ability 3",
         ["dpleft"] = "extra 1",
         ["dpup"] = "extra 2",
-        ["dpright"] = "extra 3",
+        ["dpright"] = "ult",
         ["dpdown"] = "interact",
     }
 
-    function love.gamepadpressed(joystick_obj, button)
-        if joystick_obj == joystick then
-            pressed_buttons[button] = true
+    function love.gamepadpressed(joystickobj, button)
+        if joystickobj == joystick then
+            pressedbuttons[button] = true
         end
     end
 
-    function love.gamepadreleased(joystick_obj, button)
-        if joystick_obj == joystick then
-            pressed_buttons[button] = nil
+    function love.gamepadreleased(joystickobj, button)
+        if joystickobj == joystick then
+            pressedbuttons[button] = nil
         end
     end
 
     function gamepad_inputs()
-        local current_actions = {}
-        local current_direction = {x = 0, y = 0}
+        local currentactions = {}
+        local currentdirection = {x = 0, y = 0}
         local deadzone = 0.15
 
         if joystick and joystick:isConnected() and joystick:isGamepad() then
@@ -108,23 +109,24 @@ end
             if math.abs(x) < deadzone then x = 0 end
             if math.abs(y) < deadzone then y = 0 end
 
-            current_direction.x = x
-            current_direction.y = y
+            currentdirection.x = x
+            currentdirection.y = y
 
             for button, action in pairs(gamepad_action_map) do
-                if pressed_buttons[button] then
-                    table.insert(current_actions, action)
+                if pressedbuttons[button] then
+                    table.insert(currentactions, action)
                 end
             end
         end
 
-        return current_actions, normalize(current_direction)
+        return currentactions, normalize(currentdirection)
     end
 
-function inputs.get_current_inputs(input_mode)
-    if input_mode == "Keyboard" then
+function inputs.get_current_inputs(inputmode)
+    inputlist = {}
+    if inputmode == "Keyboard" then
         return keyboard_inputs()
-    elseif input_mode == "Controller" then
+    elseif inputmode == "Controller" then
         return gamepad_inputs()
     else
         return keyboard_inputs()

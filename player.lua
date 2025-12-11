@@ -1,7 +1,7 @@
 local inputs = require("inputs")
 local player = {
-    x = 0, -- Info
-    y = 0,
+    x = 200, -- Info
+    y = 200,
     hitx = 0,
     hity = 0,
     timer = 0,
@@ -23,6 +23,13 @@ function player.takedamage(damage)
         player.health = player.health - damage * player.damagemultiplier
     end
 end
+
+--function player.effectdrawer()
+--    for _, effect in player.statuseffects do
+--        effectcount = #player.statuseffects
+--
+--    end
+--end
 
 function player.update(dt)
     local w, h = love.graphics.getDimensions()
@@ -83,10 +90,10 @@ function player.draw()
         love.graphics.circle("line", player.x + player.size / 2, player.y + player.size / 2, player.hitsize)
         love.graphics.setColor(1, 1, 1)
 
-        love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, 0, 45)
-        love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 60)
-        love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.speed, 0, 75)
-        love.graphics.print("Player Health: " .. player.health .. ", " .. player.timer, 0, 90)
+        love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, 0, 60)
+        love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 75)
+        love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.speed, 0, 90)
+        love.graphics.print("Player Health: " .. player.health .. ", " .. player.timer, 0, 105)
     end
 end
 

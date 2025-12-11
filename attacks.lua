@@ -1,55 +1,36 @@
 local player = require("player")
-local attacks = {
-    rectanglehitzones = {},
-    circlehitzones = {}
+local hitbox = {
 }
-local elapsedtime = 0
+local attacks = {
+    rectanglehitboxes = {},
+    circlehitboxes = {}
+}
 
-function attacks.colortransition(startcolor1, startcolor2, startcolor3, endcolor1, endcolor2, endcolor3, transitiontime, flashtime)
-    transitionstart = elapsedtime
-    local colordiff1 = startcolor1 - endcolor1
-    local colordiff2 = startcolor2 - endcolor2
-    local colordiff3 = startcolor3 - endcolor3
-    love.graphics.print(colordiff1 .. ", " .. colordiff2 .. ", " .. colordiff3, 0, 120)
-    love.graphics.print(transitionstart, 0, 135)
-    return colordiff1, colordiff2, colordiff3
+function attacks.createrectanglehitbox(x, y, sizex, sizey, chargetime, linger, invert)
+    table.insert(attacks.rectanglehitboxes, {x = x, y = y, sizex = sizex, sizey = sizey, chargetime = chargetime, linger = linger, inverted = invert})
 end
 
-function attacks.createrectanglehitzone(x, y, sizex, sizey, chargetime, linger)
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("fill", x, y, sizex, sizey)
-    table.insert(attacks.rectanglehitzones, {x, y, sizex, sizey})
+function attacks.createcirclehitbox(x, y, radius, chargetime, linger, invert)
+    table.insert(attacks.circlehitboxes, {x = x, y = y, radius = radius, chargetime = chargetime, linger = linger, inverted = invert})
 end
 
-function attacks.createcirclehitzone(x, y, radius, chargetime, linger)
-    love.graphics.setColor(0, 0, 1)
-    love.graphics.circle("fill", x, y, radius)
-    table.insert(attacks.circlehitzones, {x, y, radius})
+function attacks.createshearhitbox(direction)
+    if direction == "left" then
+        attacks.createrectanglehitbox(0, 0, player.hitx + player.hitsize / 2, 100, 0, 0)
+    end
 end
 
-function attacks.isinhitzone()
+function attacks.isinhitbox()
     -- Rectangle
-    for _, tab in ipairs(attacks.rectanglehitzones) do
-        if player.hitx < tab[1] + tab[3] and player.hitx + player.hitsize > tab[1] then
-            if player.hity < tab[2] + tab[4] and player.hity + player.hitsize > tab[2] then
-                return true
-            end
+    for _, tab in ipairs(attacks.rectanglehitboxes) do
+        if player.hitx + player.hitsize > tab.x and player.hitx < tab.x + tab.sizex and player.hity + player.hitsize > tab.y and player.hity < tab.y + tab.sizey then
+            return true
         end
     end
-
     -- Circle
-    for _, circle in ipairs(attacks.circlehitzones) do
-        local circlex = circle[1]
-        local circley = circle[2]
-        local circleradius = circle[3]
-
-        local nearestx = math.max(circleX - circleRadius, math.min(player.hitx + player.hitsize / 2, circlex + circleradius))
-        local nearesty = math.max(circleY - circleRadius, math.min(player.hity + player.hitsize / 2, circley + circleradius))
-
-        local deltax = nearestx - (player.hitx + player.hitsize / 2)
-        local deltay = nearesty - (player.hity + player.hitsize / 2)
-
-        if (deltax * deltax + deltay * deltay) < (circletadius * circletadius) then
+    for _, tab in ipairs(attacks.circlehitboxes) do
+        local distance = math.sqrt((tab.x - player.hitx) ^ 2 + (tab.y - player.hity) ^ 2)
+        if distance < tab.radius - player.hitsize / 2 then
             return true
         end
     end
@@ -57,19 +38,27 @@ function attacks.isinhitzone()
 end
 
 function attacks.update(dt)
-    elapsedtime = elapsedtime + dt
-    if attacks.isinhitzone() then
-        player.takedamage(0)
+    if attacks.isinhitbox() then
+        player.takedamage(1)
     end
 end
 
 function attacks.draw()
-    attacks.createrectanglehitzone(100, 150, 100, 100)
+    -- Hitboxes
+        if attacks.rectanglehitboxes == nil then
+            return
+        end
+        for _, tab in ipairs(attacks.rectanglehitboxes) do
+            love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)
+        end
+        for _, tab in ipairs(attacks.circlehitboxes) do
+            love.graphics.circle("fill", tab.x, tab.y, tab.radius)
+        end
+
     love.graphics.setColor(1, 1, 1)
-    attacks.colortransition(1, 0, 1, 0, 1, 0, 5)
     if debug then
-        love.graphics.print("Time: " .. elapsedtime, 0, 105)
+        love.graphics.print("Time: " .. elapsedtime, 0, 120)
     end
 end
 
-return attacks
+return attacks, hitbox
