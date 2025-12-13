@@ -2,21 +2,19 @@ local inputs = require("inputs")
 local player = require("player")
 local attacks = require("attacks")
 
-elapsedtime = 0
-state = "Game"
-input_mode = "Controller"
-debug = true
-
 main = {
+    elapsedtime = 0,
     winw = 0,
     winh = 0,
+    playercount = 1,
+    state = "Game",
+    debug = true,
+    input_mode = "Controller"
 }
 
 assets = {
     count = 0,
     effect = {},
-    player = {},
-    attacks = {}
 }
 
 local function loadasset(name, type)
@@ -30,12 +28,16 @@ local function loadasset(name, type)
 end
 
 function love.load()
-    loadasset("testeffect", "effect")
-    loadasset("testeffect", "effect")
+    player.giveitemdebug("TestName", "Test Description", {movementspeed = 200, invincibilitytime = 0.5, damagetaken = 1})
+    attacks.createshearhitbox(200, 200, "down")
+    attacks.createshearhitbox(150, 150, "up")
+    attacks.createshearhitbox(200, 200, "right")
+    attacks.createshearhitbox(150, 150, "left")
+
     for _ , assettype in pairs(assets) do
         if type(assettype) == "table" then
             for _, asset in ipairs(assettype) do
-                if debug then
+                if main.debug then
                     print("Loaded: " .. asset.name .. " (" .. asset.id .. ")")
                 end
             end
@@ -44,10 +46,10 @@ function love.load()
 end
 
 function love.update(dt)
-    elapsedtime = elapsedtime + dt
+    main.elapsedtime = main.elapsedtime + dt
     if inputs.button_pressed("debug", "Keyboard") and not debugheld then
         debugheld = true
-        debug = not debug
+        main.debug = not main.debug
     end
     if not inputs.button_pressed("debug", "Keyboard") and debugheld then
         debugheld = false
@@ -56,9 +58,9 @@ function love.update(dt)
     --    state = "Dead"
     --end
 
-    if state == "AssetLoading" then
+    if main.state == "AssetLoading" then
         --love.graphics.newImage("assets/effects/")
-    elseif state == "Game" then
+    elseif main.state == "Game" then
         attacks.update(dt)
         player.update(dt)
     elseif state == "Dead" then
@@ -74,22 +76,23 @@ function love.draw()
     love.graphics.rectangle("fill", 0, 0, main.winw, main.winh)
     love.graphics.setColor(1, 1, 1)
 
-    if debug then
+    if main.state == "Main" then
+
+    elseif main.state == "Game" then
+        attacks.draw()
+        player.draw()
+
+    elseif main.state == "Dead" then
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("fill", 0, 0, w, h)
+    end
+
+    if main.debug then
+        love.graphics.setColor(0, 0, 1)
         love.graphics.print("Width: " .. main.winw .. ", " .. "Height: " .. main.winh, 0, 15)
         love.graphics.print("Actions: " .. actions_str, 0, 45)
         love.graphics.print("Direction: (" .. direction.x .. ", " .. direction.y .. ")", 0, 30)
         fps = love.timer.getFPS()
         love.graphics.print(fps, 0, 0)
-    end
-
-    if state == "Main" then
-
-    elseif state == "Game" then
-        attacks.draw()
-        player.draw()
-
-    elseif state == "Dead" then
-        love.graphics.setColor(0, 0, 0)
-        love.graphics.rectangle("fill", 0, 0, w, h)
     end
 end

@@ -14,9 +14,18 @@ function attacks.createcirclehitbox(x, y, radius, chargetime, linger, invert)
     table.insert(attacks.circlehitboxes, {x = x, y = y, radius = radius, chargetime = chargetime, linger = linger, inverted = invert})
 end
 
-function attacks.createshearhitbox(direction)
+function attacks.createshearhitbox(x, y, direction)
     if direction == "left" then
-        attacks.createrectanglehitbox(0, 0, player.hitx + player.hitsize / 2, 100, 0, 0)
+        attacks.createrectanglehitbox(0, 0, x, main.winh, 0, 0)
+    end
+    if direction == "right" then
+        attacks.createrectanglehitbox(x, 0, main.winw - x, main.winh, 0, 0)
+    end
+    if direction == "up" then
+        attacks.createrectanglehitbox(0, 0, main.winw, y, 0, 0)
+    end
+    if direction == "down" then
+        attacks.createrectanglehitbox(0, y, main.winw, main.winh - y, 0, 0)
     end
 end
 
@@ -44,10 +53,8 @@ function attacks.update(dt)
 end
 
 function attacks.draw()
+    love.graphics.setColor(1, 0, 0)
     -- Hitboxes
-        if attacks.rectanglehitboxes == nil then
-            return
-        end
         for _, tab in ipairs(attacks.rectanglehitboxes) do
             love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)
         end
@@ -55,10 +62,11 @@ function attacks.draw()
             love.graphics.circle("fill", tab.x, tab.y, tab.radius)
         end
 
-    love.graphics.setColor(1, 1, 1)
-    if debug then
-        love.graphics.print("Time: " .. elapsedtime, 0, 120)
+    if main.debug then
+        love.graphics.setColor(0, 0, 1)
+        love.graphics.print("Time: " .. main.elapsedtime, 0, 120)
     end
+    love.graphics.setColor(1, 1, 1)
 end
 
-return attacks, hitbox
+return attacks

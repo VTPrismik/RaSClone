@@ -5,38 +5,96 @@ local player = {
     hitx = 0,
     hity = 0,
     timer = 0,
-    invincible = false,
-
-    speed = 500, -- Stats
     health = 5,
-    statuseffects = {},
-    invincibilitytime = 0.5,
     size = 50,
     hitsize = 10,
-    damagemultiplier = 1
+    invincible = false,
+
+    base = {
+        movementspeed = 500,
+        invincibilitytime = 0.5,
+        damagetaken = 1,
+    },
+
+    items = {},
+    statuseffects = {},
+
+    stats = {
+        movementspeed = 500,
+        invincibilitytime = 50,
+        damagetaken = 1,
+    }
 }
 
 function player.takedamage(damage)
     if player.invincible == false and damage ~= nil then
         player.invincible = true
-        player.timer = player.invincibilitytime
-        player.health = player.health - damage * player.damagemultiplier
+        player.timer = player.stats.invincibilitytime
+        player.health = player.health - damage * player.stats.damagetaken
     end
 end
 
---function player.effectdrawer()
+-- Items
+--{
+--    name = "",
+--    description = "",
+--    effect = {},
+--    bonus = ""
+--}
+
+function player.giveitem()
+    -- Put actual items and stats here. im too lazy to do that right now
+end
+
+function player.giveitemdebug(name, description, effect, bonus)
+    item = {name = name,
+            description = description,
+            effect = {movementspeed = effect.movementspeed, invincibilitytime = effect.invincibilitytime, damagetaken = effect.damagetaken},
+            bonus = bonus,
+            id = #player.items + 1}
+    print(item.name .. ", " .. item.description)
+    table.insert(player.items, item)
+end
+
+function player.calculatestats()
+    local newstats = {}
+    for key, value in pairs(player.base) do
+        newstats[key] = value
+    end
+    for _, item in pairs(player.items) do -- Base, Upgrade, Item, Effect
+        newstats.movementspeed = item.effect.movementspeed + newstats.movementspeed
+        print()
+        print(item.effect.movementspeed)
+        print(item.effect.invincibilitytime)
+        print(item.effect.damagetaken)
+        print(newstats.damagetaken)
+        newstats.damagetaken = item.effect.damagetaken + newstats.damagetaken
+        newstats.invincibilitytime = item.effect.invincibilitytime + newstats.invincibilitytime
+        newstats.damage = item.effect.damagetaken + newstats.invincibilitytime
+    end
+    player.stats = newstats
+end
+
+--forgot to set up ui drawer before effect drawer. whoops
+--local function playereffectdrawer()
+--    effectcount = #player.statuseffects
 --    for _, effect in player.statuseffects do
---        effectcount = #player.statuseffects
 --
 --    end
 --end
 
+--local function playeruidrawer()
+--
+--end
+
 function player.update(dt)
     local w, h = love.graphics.getDimensions()
-    local _, direction = inputs.get_current_inputs(input_mode)
+    local _, direction = inputs.get_current_inputs(main.input_mode)
 
-    player.x = player.x + direction.x * dt * player.speed -- Movement
-    player.y = player.y + direction.y * dt * player.speed
+    player.calculatestats()
+
+    player.x = player.x + direction.x * dt * player.stats.movementspeed -- Movement
+    player.y = player.y + direction.y * dt * player.stats.movementspeed
 
     if player.x < 0 then -- Border collision
         player.x = 0
@@ -66,33 +124,33 @@ end
 function player.draw()
     love.graphics.circle("fill", player.x + player.size / 2, player.y + player.size / 2, player.size / 2)
 
-    if debug then
-        if inputs.button_pressed("basic", input_mode) then
+    if main.debug then
+        if inputs.button_pressed("basic", main.input_mode) then
             love.graphics.setColor(0.5, 0.5, 0.5)
-        elseif inputs.button_pressed("ability 1", input_mode) then
+        elseif inputs.button_pressed("ability 1", main.input_mode) then
             love.graphics.setColor(1, 0, 0)
-        elseif inputs.button_pressed("ability 2", input_mode) then
+        elseif inputs.button_pressed("ability 2", main.input_mode) then
             love.graphics.setColor(0, 1, 0)
-        elseif inputs.button_pressed("ability 3", input_mode) then
+        elseif inputs.button_pressed("ability 3", main.input_mode) then
             love.graphics.setColor(0, 0, 1)
-        elseif inputs.button_pressed("extra 1", input_mode) then
+        elseif inputs.button_pressed("extra 1", main.input_mode) then
             love.graphics.setColor(1, 1, 0)
-        elseif inputs.button_pressed("extra 2", input_mode) then
+        elseif inputs.button_pressed("extra 2", main.input_mode) then
             love.graphics.setColor(1, 0, 1)
-        elseif inputs.button_pressed("extra 3", input_mode) then
+        elseif inputs.button_pressed("extra 3", main.input_mode) then
             love.graphics.setColor(0, 1, 1)
-        elseif inputs.button_pressed("interact", input_mode) then
+        elseif inputs.button_pressed("interact", main.input_mode) then
             love.graphics.setColor(1, 1, 1)
         else
             love.graphics.setColor(0.8, 0.8, 0.8)
         end
         love.graphics.setLineWidth(player.hitsize/3)
         love.graphics.circle("line", player.x + player.size / 2, player.y + player.size / 2, player.hitsize)
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(0, 0, 1)
 
         love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, 0, 60)
         love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 75)
-        love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.speed, 0, 90)
+        love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.stats.movementspeed, 0, 90)
         love.graphics.print("Player Health: " .. player.health .. ", " .. player.timer, 0, 105)
     end
 end
