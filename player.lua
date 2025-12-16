@@ -6,6 +6,7 @@ local player = {
     hity = 0,
     timer = 0,
     health = 5,
+    shield = 5,
     size = 50,
     hitsize = 10,
     invincible = false,
@@ -14,6 +15,8 @@ local player = {
         movementspeed = 500,
         invincibilitytime = 0.5,
         damagetaken = 1,
+        damage = 1,
+        attackspeed = 1,
     },
 
     items = {},
@@ -23,6 +26,8 @@ local player = {
         movementspeed = 500,
         invincibilitytime = 50,
         damagetaken = 1,
+        damage = 1,
+        attackspeed = 1,
     }
 }
 
@@ -30,7 +35,11 @@ function player.takedamage(damage)
     if player.invincible == false and damage ~= nil then
         player.invincible = true
         player.timer = player.stats.invincibilitytime
-        player.health = player.health - damage * player.stats.damagetaken
+        player.shield = player.shield - damage * player.stats.damagetaken
+        if player.shield < 0 then
+            player.health = player.health + player.shield
+            player.shield = 0
+        end
     end
 end
 
@@ -42,7 +51,7 @@ end
 --    bonus = ""
 --}
 
-function player.giveitem()
+function player.giveitem(name)
     -- Put actual items and stats here. im too lazy to do that right now
 end
 
@@ -145,7 +154,7 @@ function player.draw()
         love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, 0, 60)
         love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 75)
         love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.stats.movementspeed, 0, 90)
-        love.graphics.print("Player Health: " .. player.health .. ", " .. player.timer, 0, 105)
+        love.graphics.print("Player Health: " .. player.health .. ", Player Shield: " .. player.shield .. ", Invincibility Time: " .. player.timer, 0, 105)
     end
 end
 

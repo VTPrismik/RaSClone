@@ -69,12 +69,7 @@ function attacks.draw()
                 love.graphics.setColor(1, 0, 0)
                 love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)
                 tab.linger = tab.linger - main.dt
-                tab.active = false
-                print("AAAAA")
-                print(tab.x)
-                print(tab.y)
-                print(tab.sizex)
-                print(tab.sizey)
+                tab.active = true
             else
                 love.graphics.setColor(0, 1, 0)
                 love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)

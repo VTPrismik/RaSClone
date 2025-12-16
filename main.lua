@@ -7,7 +7,7 @@ main = {
     winw = 0,
     winh = 0,
     playercount = 1,
-    state = "Game",
+    state = "Loading",
     debug = true,
     input_mode = "Controller",
     dt = 0
@@ -23,25 +23,27 @@ local function loadasset(name, type)
     if type == "effect" then
         local image = "assets/" .. type .. "/" .. name .. ".png"
         imagedata = love.graphics.newImage(image)
-        table.insert(assets.effect, {name = name, image = imagedata, id = assets.count})
+        assets.effect[name] = {image = imagedata, id = assets.count}
     end
 end
 
-function main.reloadassets()
+function reloadassets()
     assets = {
         count = 0,
         effect = {},
     }
 
-    -- Effects
     loadasset("judgement", "effect")
+    loadasset("haunted", "effect")
+    loadasset("shielded", "effect")
 end
 
 function love.load()
     main.winw, main.winh = love.graphics.getDimensions()
 
-    player.giveitemdebug("TestName", "Test Description", {movementspeed = 200, invincibilitytime = 0.5, damagetaken = 1})
+    player.giveitemdebug("TestName", "Test Description", {movementspeed = 200, invincibilitytime = 0.5, damagetaken = 0})
     attacks.createshearhitbox(200, 200, "up", 1)
+    attacks.createrectanglehitbox(300, 300, 100, 100, 1, 1000, true)
 
     for _ , assettype in pairs(assets) do
         if type(assettype) == "table" then
@@ -69,10 +71,11 @@ function love.update(dt)
     --end
 
     if main.state == "AssetLoading" then
-        --love.graphics.newImage("assets/effects/")
+
     elseif main.state == "Game" then
         attacks.update(dt)
         player.update(dt)
+
     elseif state == "Dead" then
     end
 end
@@ -86,6 +89,10 @@ function love.draw()
     love.graphics.rectangle("fill", 0, 0, main.winw, main.winh)
     love.graphics.setColor(1, 1, 1)
 
+    if main.state == "Loading" then
+        reloadassets()
+        main.state = "Game"
+    end
     if main.state == "Main" then
 
     elseif main.state == "Game" then
