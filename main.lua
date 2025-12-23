@@ -1,5 +1,4 @@
 local json = require("modules/json")
-
 local inputs = require("inputs")
 local player = require("player")
 local attacks = require("attacks")
@@ -12,7 +11,8 @@ main = {
     state = "Loading",
     debug = true,
     input_mode = "Controller",
-    dt = 0
+    dt = 0,
+    stage = 0
 }
 
 assets = {
@@ -50,9 +50,12 @@ end
 function love.load()
     main.winw, main.winh = love.graphics.getDimensions()
 
+    player.health = player.maxhealth
+
     reloadassets()
 
-    player.giveitem("shield-generator")
+    player.giveitem("speed_potion")
+    player.giveitem("shield_potion")
     attacks.createshearhitbox(200, 200, "up", 1)
     attacks.createrectanglehitbox(300, 300, 100, 100, 1, 1000, true)
 
@@ -68,8 +71,13 @@ function love.load()
 end
 
 function love.update(dt)
+    if player.shield == 0 then
+        player.giveitem("shield_potion")
+    end
     main.elapsedtime = main.elapsedtime + dt
     main.dt = dt
+    local debugheld
+    local fullscreenheld
     if inputs.button_pressed("debug", "Keyboard") and not debugheld then
         debugheld = true
         main.debug = not main.debug
@@ -77,11 +85,20 @@ function love.update(dt)
     if not inputs.button_pressed("debug", "Keyboard") and debugheld then
         debugheld = false
     end
+
+    if inputs.button_pressed("fullscreen", "Keyboard") and not fullscreenheld then
+        fullscreenheld = true
+        love.window.setFullscreen(not love.window.getFullscreen)
+    end
+    if not inputs.button_pressed("fullscreen", "Keyboard") and fullscreenheld then
+        fullscreenheld = false
+    end
+
     --if player.health <= 0 then
     --    state = "Dead"
     --end
 
-    if main.state == "AssetLoading" then
+    if main.state == "Loading" then
 
     elseif main.state == "Game" then
         attacks.update(dt)

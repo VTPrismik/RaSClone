@@ -3,32 +3,72 @@
     "name": "",
     "description": "",
     "effect": {
-      "movementspeed": 0,
-      "damage": 0,
-      "cooldownreduce": 0,
-      "invincibilitytime": 0,
-      "damagetaken": 0
     },
     "bonus": {
       "type": "",
-      "arg1": "",
-      "arg2": ""
+      "args": {
+        "1": 0
+      }
     }
   },
-  "shield-generator": {
-    "name": "Shield Generator",
-    "description": "Grants a shield point after every stage. Max of 2. Reduces movement speed slightly.",
+  "health_potion": {
+    "name": "Health Potion",
+    "description": "Heals 2 hp instantly",
     "effect": {
-      "movementspeed": -50,
-      "damage": 0,
-      "cooldownreduce": 0,
-      "invincibilitytime": 0,
-      "damagetaken": 0
     },
     "bonus": {
-      "type": "stageshield",
-      "arg1": 1,
-      "arg2": 2
+      "type": "heal",
+      "args": {
+        "1": 2
+      }
+    }
+  },
+  "shield_potion": {
+    "name": "Shield Potion",
+    "description": "Gain 2 shield instantly",
+    "effect": {
+    },
+    "bonus": {
+      "type": "shield",
+      "args": {
+        "1": 2
+      }
+    }
+  },
+  "damage_potion": {
+    "name": "Damage Potion",
+    "description": "Increases damage dealt by 20 percent for 3 stages",
+    "effect": {
+      "damagepercent": 20
+    },
+    "bonus": {
+    }
+  },
+  "speed_potion": {
+    "name": "Speed Potion",
+    "description": "Increases movement speed by 20 percent for 3 stages",
+    "effect": {
+      "movementspeed": 20
+    },
+    "bonus": {
+    }
+  },
+  "damage_booster": {
+    "name": "Damage Booster",
+    "description": "Increases your ability damage by 20",
+    "effect": {
+      "damage": 20
+    },
+    "bonus": {
+    }
+  },
+  "speed_booster": {
+    "name": "Speed Booster",
+    "description": "Increases your movement speed by a large amount",
+    "effect": {
+      "movementspeed": 250
+    },
+    "bonus": {
     }
   }
 }

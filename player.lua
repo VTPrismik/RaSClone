@@ -1,35 +1,42 @@
 local inputs = require("inputs")
+
 local player = {
     x = 200, -- Info
     y = 200,
     hitx = 0,
     hity = 0,
     timer = 0,
-    health = 5,
+    maxhealth = 5,
+    health = 0,
     shield = 5,
     size = 50,
     hitsize = 10,
     invincible = false,
 
-    base = {
-        movementspeed = 500,
-        invincibilitytime = 0.5,
-        damagetaken = 1,
-        damage = 1,
-        cooldownreduce = 1,
-    },
-
     items = {},
     statuseffects = {},
 
+    base = {
+        movementspeed = 500,
+        speedpercent = 100,
+        invincibilitytime = 0.5,
+        damagetaken = 1,
+        damageincrease = 1,
+        damagepercent = 100,
+        cooldownreduce = 1,
+    },
     stats = {
         movementspeed = 500,
-        invincibilitytime = 50,
+        speedpercent = 100,
+        invincibilitytime = 0.5,
         damagetaken = 1,
-        damage = 1,
+        damageincrease = 1,
+        damagepercent = 100,
         cooldownreduce = 1,
     }
 }
+
+statcalccount = 0
 
 function player.takedamage(damage)
     if player.invincible == false and damage ~= nil then
@@ -43,24 +50,18 @@ function player.takedamage(damage)
     end
 end
 
--- Items
---{
---    name = "",
---    description = "",
---    effect = {},
---    bonus = ""
---}
-
 function player.giveitem(name)
     table.insert(player.items, assets.items["jsontab"][name])
 end
 
 function player.giveitemdebug(name, description, effect, bonus)
-    item = {name = name,
-            description = description,
-            effect = {movementspeed = effect.movementspeed, invincibilitytime = effect.invincibilitytime, damagetaken = effect.damagetaken},
-            bonus = bonus,
-            id = #player.items + 1}
+    item = {
+        name = name,
+        description = description,
+        effect = {movementspeed = effect.movementspeed, invincibilitytime = effect.invincibilitytime, damagetaken = effect.damagetaken},
+        bonus = bonus,
+        id = #player.items + 1
+    }
     table.insert(player.items, item)
 end
 
@@ -70,31 +71,27 @@ function player.calculatestats()
         newstats[key] = value
     end
     for _, item in pairs(player.items) do -- Base, Upgrade, Item, Effect
-        newstats.movementspeed = item.effect.movementspeed + newstats.movementspeed
-        newstats.damagetaken = item.effect.damagetaken + newstats.damagetaken
-        newstats.invincibilitytime = item.effect.invincibilitytime + newstats.invincibilitytime
-        newstats.damage = item.effect.damagetaken + newstats.invincibilitytime
+        for effect in pairs(item.effect) do
+            newstats[effect] = item.effect[effect] + newstats[effect]
+        end
     end
     player.stats = newstats
 end
 
---forgot to set up ui drawer before effect drawer. whoops
---local function playereffectdrawer()
---    effectcount = #player.statuseffects
---    for _, effect in player.statuseffects do
---
---    end
---end
-
---local function playeruidrawer()
---
---end
+function player.effectupdate()
+    for _, item in ipairs(player.items) do
+        player.calculatestats()
+        if item.bonus.type ~= nil then
+            player.bonusupdate(item.bonus.type, item.bonus.args)
+        end
+    end
+end
 
 function player.update(dt)
     local w, h = love.graphics.getDimensions()
     local _, direction = inputs.get_current_inputs(main.input_mode)
 
-    player.calculatestats()
+    player.effectupdate()
 
     player.x = player.x + direction.x * dt * player.stats.movementspeed -- Movement
     player.y = player.y + direction.y * dt * player.stats.movementspeed
@@ -117,6 +114,7 @@ function player.update(dt)
 
     if player.timer < 0 then -- Invincibilitytime
         player.invincible = false
+        player.timer = 0
     else
     end
     if player.invincible then
@@ -155,6 +153,34 @@ function player.draw()
         love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 75)
         love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.stats.movementspeed, 0, 90)
         love.graphics.print("Player Health: " .. player.health .. ", Player Shield: " .. player.shield .. ", Invincibility Time: " .. player.timer, 0, 105)
+    end
+end
+
+usedshield = 0
+usedheal = 0
+
+function player.bonusupdate(type, args)
+    if type == "shield" then
+        newshield = 0
+        for _, item in ipairs(player.items) do
+            if item.bonus.type == "shield" then
+                newshield = newshield + 1
+            end
+        end
+        newshield = math.max(0, newshield - usedshield)
+        player.shield = player.shield + args["1"] * newshield
+        usedshield = usedshield + newshield
+    end
+    if type == "heal" then
+        newheal = 0
+        for _, item in ipairs(player.items) do
+            if item.bonus.type == "heal" then
+                newheal = newheal + 1
+            end
+        end
+        newheal = math.max(0, newheal - usedheal)
+        player.health = math.max(player.maxhealth, player.health + args["1"] * newheal)
+        usedheal = usedheal + newheal
     end
 end
 
