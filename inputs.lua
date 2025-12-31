@@ -12,8 +12,8 @@ function normalize(vector)
     end
 end
 
-function inputs.button_pressed (button, inputmode)
-    for _, value in ipairs(inputs.get_current_inputs(inputmode)) do
+function inputs.button_pressed (button, inputmode, id)
+    for _, value in ipairs(inputs.get_current_inputs(inputmode, id)) do
         if value == button then
             return true
         else
@@ -122,12 +122,16 @@ end
         return currentactions, normalize(currentdirection)
     end
 
-function inputs.get_current_inputs(inputmode)
+function inputs.get_current_inputs(inputmode, id)
     inputlist = {}
 
     if inputmode == "Keyboard" then
         return keyboard_inputs()
     elseif inputmode == "Controller" then
+        if id == 2 then -- temporary just to test 2 inputs without setting up networking
+            print("AAA")
+            return keyboard_inputs()
+        end
         return gamepad_inputs()
     else
         print("Invalid input mode (" .. inputmode .. ")")
