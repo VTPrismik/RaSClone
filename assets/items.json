@@ -1,75 +1,75 @@
 {
-  "example": {
-    "name": "",
-    "description": "",
-    "effect": {
+    "example": {
+        "name": "",
+        "description": "",
+        "effect": {
+        },
+        "bonus": {
+            "type": "",
+            "args": {
+                "1": 0
+            }
+        }
     },
-    "bonus": {
-      "type": "",
-      "args": {
-        "1": 0
-      }
-    }
-  },
-  "health_potion": {
-    "name": "Health Potion",
-    "description": "Heals 2 hp instantly",
-    "effect": {
+    "health_potion": {
+        "name": "Health Potion",
+        "description": "Heals 2 hp instantly",
+        "effect": {
+        },
+        "bonus": {
+            "type": "heal",
+            "args": {
+                "1": 2
+            }
+        }
     },
-    "bonus": {
-      "type": "heal",
-      "args": {
-        "1": 2
-      }
-    }
-  },
-  "shield_potion": {
-    "name": "Shield Potion",
-    "description": "Gain 2 shield instantly",
-    "effect": {
+    "shield_potion": {
+        "name": "Shield Potion",
+        "description": "Gain 2 shield instantly",
+        "effect": {
+        },
+        "bonus": {
+            "type": "shield",
+            "args": {
+                "1": 2
+            }
+        }
     },
-    "bonus": {
-      "type": "shield",
-      "args": {
-        "1": 2
-      }
-    }
-  },
-  "damage_potion": {
-    "name": "Damage Potion",
-    "description": "Increases damage dealt by 20 percent for 3 stages",
-    "effect": {
-      "damagepercent": 20
+    "damage_potion": {
+        "name": "Damage Potion",
+        "description": "Increases damage dealt by 20 percent for 3 stages",
+        "effect": {
+            "damagepercent": 20
+        },
+        "bonus": {
+        }
     },
-    "bonus": {
-    }
-  },
-  "speed_potion": {
-    "name": "Speed Potion",
-    "description": "Increases movement speed by 20 percent for 3 stages",
-    "effect": {
-      "movementspeed": 20
+    "speed_potion": {
+        "name": "Speed Potion",
+        "description": "Increases movement speed by 20 percent for 3 stages",
+        "effect": {
+            "speedpercent": 20
+        },
+        "bonus": {
+        }
     },
-    "bonus": {
-    }
-  },
-  "damage_booster": {
-    "name": "Damage Booster",
-    "description": "Increases your ability damage by 20",
-    "effect": {
-      "damage": 20
+    "damage_booster": {
+        "name": "Damage Booster",
+        "description": "Increases your ability damage by 20",
+        "effect": {
+            "damage": 20
+        },
+        "bonus": {
+        }
     },
-    "bonus": {
+    "speed_booster": {
+        "name": "Speed Booster",
+        "description": "Increases your movement speed by a large amount",
+        "effect": {
+            "movementspeed": 250
+        },
+        "bonus": {
+        }
     }
-  },
-  "speed_booster": {
-    "name": "Speed Booster",
-    "description": "Increases your movement speed by a large amount",
-    "effect": {
-      "movementspeed": 250
-    },
-    "bonus": {
-    }
-  }
 }
 
