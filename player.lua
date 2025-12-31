@@ -21,18 +21,20 @@ local player = {
         speedpercent = 100,
         invincibilitytime = 0.5,
         damagetaken = 1,
-        damageincrease = 1,
+        damage = 1,
         damagepercent = 100,
         cooldownreduce = 1,
+        dodgechance = 0,
     },
     stats = {
         movementspeed = 500,
         speedpercent = 100,
         invincibilitytime = 0.5,
         damagetaken = 1,
-        damageincrease = 1,
+        damage = 1,
         damagepercent = 100,
         cooldownreduce = 1,
+        dodgechance = 0
     }
 }
 
@@ -65,22 +67,35 @@ function player.giveitemdebug(name, description, effect, bonus)
     table.insert(player.items, item)
 end
 
+function player.giveeffect(name)
+    table.insert(player.statuseffects, name)
+    print(name)
+    print(player.statuseffects)
+    for _, effect in ipairs(player.statuseffects) do
+        print(effect)
+    end
+end
+
+
 function player.calculatestats()
     local newstats = {}
     for key, value in pairs(player.base) do
         newstats[key] = value
     end
-    for _, item in pairs(player.items) do -- Base, Upgrade, Item, Effect
+    for _, item in pairs(player.items) do
         for effect in pairs(item.effect) do
             newstats[effect] = item.effect[effect] + newstats[effect]
         end
     end
-    player.stats = newstats
-end
+    for _, effect in ipairs(player.statuseffects) do
+        newstats = player.effectupdate(effect, newstats)
+    end
 
-function player.effectupdate()
+    newstats.movementspeed = newstats.movementspeed * (newstats.speedpercent / 100)
+    newstats.damage = newstats.damage * (newstats.damagepercent / 100)
+    player.stats = newstats
+
     for _, item in ipairs(player.items) do
-        player.calculatestats()
         if item.bonus.type ~= nil then
             player.bonusupdate(item.bonus.type, item.bonus.args)
         end
@@ -91,7 +106,7 @@ function player.update(dt)
     local w, h = love.graphics.getDimensions()
     local _, direction = inputs.get_current_inputs(main.input_mode)
 
-    player.effectupdate()
+    player.calculatestats()
 
     player.x = player.x + direction.x * dt * player.stats.movementspeed -- Movement
     player.y = player.y + direction.y * dt * player.stats.movementspeed
@@ -156,9 +171,31 @@ function player.draw()
     end
 end
 
+function player.effectupdate(type, newstats)
+    if type == "slowness" then
+        newstats.movementspeed = newstats.movementspeed * 0.8
+    end
+    if type == "speed_boost" then
+        newstats.movementspeed = newstats.movementspeed * 1.2
+    end
+    if type == "damage_boost" then
+        newstats.damagepercent = newstats.damagepercent * 1.2
+    end
+    if type == "invulnerability_boost" then
+        newstats.invincibilitytime = newstats.invincibilitytime * 1.2
+    end
+    if type == "cooldown_boost" then
+        newstats.cooldownreduce = ewstats.cooldownreduce * 1.2
+    end
+    if type == "dodge_boost" then
+        newstats.dodgechance = newstats.dodgechance * 1.2
+    end
+
+    return newstats
+end
+
 usedshield = 0
 usedheal = 0
-
 function player.bonusupdate(type, args)
     if type == "shield" then
         newshield = 0

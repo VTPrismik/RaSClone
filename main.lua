@@ -56,6 +56,7 @@ function love.load()
 
     player.giveitem("speed_potion")
     player.giveitem("shield_potion")
+    player.giveeffect("speed_boost")
     attacks.createshearhitbox(200, 200, "up", 1)
     attacks.createrectanglehitbox(300, 300, 100, 100, 1, 1000, true)
 
@@ -71,9 +72,6 @@ function love.load()
 end
 
 function love.update(dt)
-    if player.shield == 0 then
-        player.giveitem("shield_potion")
-    end
     main.elapsedtime = main.elapsedtime + dt
     main.dt = dt
     local debugheld
@@ -110,10 +108,15 @@ end
 
 function love.draw()
     main.winw, main.winh = love.graphics.getDimensions()
-    local actions, direction = inputs.get_current_inputs(input_mode)
+    local actions, direction = inputs.get_current_inputs(main.input_mode)
     local actions_str = table.concat(actions, ", ")
-
-    love.graphics.setColor(0, 0.5, 0)
+    for i in ipairs(actions) do
+        print(i)
+    end
+    for i in ipairs(direction) do
+        print(i)
+    end
+    love.graphics.setColor(0, 0.2, 0)
     love.graphics.rectangle("fill", 0, 0, main.winw, main.winh)
     love.graphics.setColor(1, 1, 1)
 

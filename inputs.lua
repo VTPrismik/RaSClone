@@ -32,12 +32,12 @@ end
 
     local keyboard_action_map = {
         ["space"] = "basic",
-        ["z"] = "ability 1",
-        ["x"] = "ability 2",
-        ["c"] = "ability 3",
+        ["1"] = "ability 1",
+        ["2"] = "ability 2",
+        ["3"] = "ability 3",
         ["q"] = "extra 1",
         ["e"] = "extra 2",
-        ["v"] = "ult",
+        ["r"] = "ult",
         ["f"] = "interact",
         -- Keyboard Specific
         ["f11"] = "fullscreen",
@@ -124,11 +124,15 @@ end
 
 function inputs.get_current_inputs(inputmode)
     inputlist = {}
+    if debug then
+        print(inputmode)
+    end
     if inputmode == "Keyboard" then
         return keyboard_inputs()
     elseif inputmode == "Controller" then
         return gamepad_inputs()
     else
+        print("Invalid input mode (" .. inputmode .. ")")
         return keyboard_inputs()
     end
 end
