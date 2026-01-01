@@ -21,6 +21,8 @@ assets = {
     items = {}
 }
 
+players = {}
+
 local function loadasset(name, type)
     assets.count = assets.count + 1
     if type == "effects" then
@@ -50,15 +52,17 @@ end
 function love.load()
     main.winw, main.winh = love.graphics.getDimensions()
 
-    player.health = player.maxhealth
+    table.insert(players, player.newplayer(1))
+    table.insert(players, player.newplayer(2))
 
     reloadassets()
 
-    player.giveitem("speed_potion")
-    player.giveitem("shield_potion")
-    player.giveeffect("speed_boost")
+    players[1].giveitem("speed_potion")
+    players[1].giveitem("shield_potion")
+    players[1].giveeffect("speed_boost")
     attacks.createshearhitbox(200, 200, "up", 1)
     attacks.createrectanglehitbox(300, 300, 100, 100, 1, 1000, true)
+
 
     for _ , assettype in pairs(assets) do
         if type(assettype) == "table" then
@@ -100,7 +104,9 @@ function love.update(dt)
 
     elseif main.state == "Game" then
         attacks.update(dt)
-        player.update(dt)
+        for _, p in ipairs(players) do
+            p.update(dt)
+        end
 
     elseif state == "Dead" then
     end
@@ -108,14 +114,7 @@ end
 
 function love.draw()
     main.winw, main.winh = love.graphics.getDimensions()
-    local actions, direction = inputs.get_current_inputs(main.input_mode)
-    local actions_str = table.concat(actions, ", ")
-    for i in ipairs(actions) do
-        print(i)
-    end
-    for i in ipairs(direction) do
-        print(i)
-    end
+
     love.graphics.setColor(0, 0.2, 0)
     love.graphics.rectangle("fill", 0, 0, main.winw, main.winh)
     love.graphics.setColor(1, 1, 1)
@@ -128,7 +127,9 @@ function love.draw()
 
     elseif main.state == "Game" then
         attacks.draw()
-        player.draw()
+        for _, p in ipairs(players) do
+            p.draw(dt)
+        end
 
     elseif main.state == "Dead" then
         love.graphics.setColor(0, 0, 0)
@@ -138,8 +139,6 @@ function love.draw()
     if main.debug then
         love.graphics.setColor(0, 0, 1)
         love.graphics.print("Width: " .. main.winw .. ", " .. "Height: " .. main.winh, 0, 15)
-        love.graphics.print("Actions: " .. actions_str, 0, 45)
-        love.graphics.print("Direction: (" .. direction.x .. ", " .. direction.y .. ")", 0, 30)
         fps = love.timer.getFPS()
         love.graphics.print(fps, 0, 0)
     end

@@ -1,4 +1,3 @@
-local player = require("player")
 local attacks = {
     rectanglehitboxes = {},
     circlehitboxes = {}
@@ -27,10 +26,10 @@ function attacks.createshearhitbox(x, y, direction, chargetime)
     end
 end
 
-function attacks.isinhitbox()
+function attacks.isinhitbox(p)
     -- Rectangle
     for _, tab in ipairs(attacks.rectanglehitboxes) do
-        if player.hitx + player.hitsize > tab.x and player.hitx < tab.x + tab.sizex and player.hity + player.hitsize > tab.y and player.hity < tab.y + tab.sizey then
+        if p.hitx + p.hitsize > tab.x and p.hitx < tab.x + tab.sizex and p.hity + p.hitsize > tab.y and p.hity < tab.y + tab.sizey then
             if tab.active then
                 if tab.invert then
                     return false
@@ -42,8 +41,8 @@ function attacks.isinhitbox()
     end
     -- Circle
     for _, tab in ipairs(attacks.circlehitboxes) do
-        local distance = math.sqrt((tab.x - player.hitx) ^ 2 + (tab.y - player.hity) ^ 2)
-        if distance < tab.radius - player.hitsize / 2 then
+        local distance = math.sqrt((tab.x - p.hitx) ^ 2 + (tab.y - p.hity) ^ 2)
+        if distance < tab.radius - p.hitsize / 2 then
             if tab.active then
                 if tab.invert then
                     return false
@@ -56,15 +55,18 @@ function attacks.isinhitbox()
 end
 
 function attacks.update()
-    if attacks.isinhitbox() then
-        player.takedamage(1)
+    for _, p in ipairs(players) do
+        if attacks.isinhitbox(p) then
+            p.takedamage(1)
+        end
     end
 end
 
 function attacks.draw()
     love.graphics.setColor(0, 1, 0)
-    -- Hitboxes
-        for key, tab in ipairs(attacks.rectanglehitboxes) do
+        for i = #attacks.rectanglehitboxes, 1, -1 do
+            local tab = attacks.rectanglehitboxes[i]
+
             if tab.chargetime < 0 then
                 love.graphics.setColor(1, 0, 0)
                 love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)
@@ -76,26 +78,29 @@ function attacks.draw()
                 tab.chargetime = tab.chargetime - main.dt
                 tab.active = false
             end
+
             if tab.linger < 0 then
-                table.remove(attacks.rectanglehitboxes, key)
-                love.graphics.setColor(1, 0, 0)
-                love.graphics.rectangle("fill", tab.x, tab.y, tab.sizex, tab.sizey)
+                table.remove(attacks.rectanglehitboxes, i)
             end
         end
-        for key, tab in ipairs(attacks.circlehitboxes) do
+
+        for i = #attacks.circlehitboxes, 1, -1 do
+            local tab = attacks.circlehitboxes[i]
+
             if tab.chargetime < 0 then
                 love.graphics.setColor(1, 0, 0)
                 love.graphics.circle("fill", tab.x, tab.y, tab.radius)
                 tab.linger = tab.linger - main.dt
-                tab.active = false
+                tab.active = true
             else
                 love.graphics.setColor(0, 1, 0)
                 love.graphics.circle("fill", tab.x, tab.y, tab.radius)
                 tab.chargetime = tab.chargetime - main.dt
                 tab.active = false
             end
+
             if tab.linger < 0 then
-                table.remove(attacks.rectanglehitboxes, key)
+                table.remove(attacks.circlehitboxes, i)
             end
         end
 
