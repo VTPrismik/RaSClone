@@ -1,224 +1,237 @@
 local inputs = require("inputs")
 
-local player = {
-    x = 200, -- Info
-    y = 200,
-    hitx = 0,
-    hity = 0,
-    timer = 0,
-    maxhealth = 5,
-    health = 0,
-    shield = 5,
-    size = 50,
-    hitsize = 10,
-    invincible = false,
+player = {}
 
-    items = {},
-    statuseffects = {},
+function player.newplayer(id)
+    local player = {
+        id = id, -- Info
+        x = 200,
+        y = 200,
+        hitx = 0,
+        hity = 0,
+        timer = 0,
+        maxhealth = 5,
+        health = 0,
+        shield = 5,
+        size = 50,
+        hitsize = 10,
+        statcalccount = 0,
+        usedshield = 0,
+        usedheal = 0,
+        invincible = false,
 
-    base = {
-        movementspeed = 500,
-        speedpercent = 100,
-        invincibilitytime = 0.5,
-        damagetaken = 1,
-        damage = 1,
-        damagepercent = 100,
-        cooldownreduce = 1,
-        dodgechance = 0,
-    },
-    stats = {
-        movementspeed = 500,
-        speedpercent = 100,
-        invincibilitytime = 0.5,
-        damagetaken = 1,
-        damage = 1,
-        damagepercent = 100,
-        cooldownreduce = 1,
-        dodgechance = 0
+        items = {},
+        statuseffects = {},
+
+        base = {
+            movementspeed = 500,
+            speedpercent = 100,
+            invincibilitytime = 0.5,
+            damagetaken = 1,
+            damage = 1,
+            damagepercent = 100,
+            cooldownreduce = 1,
+            dodgechance = 0,
+        },
+        stats = {
+            movementspeed = 500,
+            speedpercent = 100,
+            invincibilitytime = 0.5,
+            damagetaken = 1,
+            damage = 1,
+            damagepercent = 100,
+            cooldownreduce = 1,
+            dodgechance = 0
+        }
     }
-}
 
-statcalccount = 0
+    player.health = player.maxhealth
 
-function player.takedamage(damage)
-    if player.invincible == false and damage ~= nil then
-        player.invincible = true
-        player.timer = player.stats.invincibilitytime
-        player.shield = player.shield - damage * player.stats.damagetaken
-        if player.shield < 0 then
-            player.health = player.health + player.shield
-            player.shield = 0
+    function player.takedamage(damage)
+        if player.invincible == false and damage ~= nil then
+            player.invincible = true
+            player.timer = player.stats.invincibilitytime
+            player.shield = player.shield - damage * player.stats.damagetaken
+            if player.shield < 0 then
+                player.health = player.health + player.shield
+                player.shield = 0
+            end
         end
     end
-end
 
-function player.giveitem(name)
-    table.insert(player.items, assets.items["jsontab"][name])
-end
-
-function player.giveitemdebug(name, description, effect, bonus)
-    item = {
-        name = name,
-        description = description,
-        effect = {movementspeed = effect.movementspeed, invincibilitytime = effect.invincibilitytime, damagetaken = effect.damagetaken},
-        bonus = bonus,
-        id = #player.items + 1
-    }
-    table.insert(player.items, item)
-end
-
-function player.giveeffect(name)
-    table.insert(player.statuseffects, name)
-    print(name)
-    print(player.statuseffects)
-    for _, effect in ipairs(player.statuseffects) do
-        print(effect)
+    function player.giveitem(name)
+        table.insert(player.items, assets.items["jsontab"][name])
     end
-end
 
-
-function player.calculatestats()
-    local newstats = {}
-    for key, value in pairs(player.base) do
-        newstats[key] = value
+    function player.giveitemdebug(name, description, effect, bonus)
+        item = {
+            name = name,
+            description = description,
+            effect = {movementspeed = effect.movementspeed, invincibilitytime = effect.invincibilitytime, damagetaken = effect.damagetaken},
+            bonus = bonus,
+            id = #player.items + 1
+        }
+        table.insert(player.items, item)
     end
-    for _, item in pairs(player.items) do
-        for effect in pairs(item.effect) do
-            newstats[effect] = item.effect[effect] + newstats[effect]
+
+    function player.giveeffect(name)
+        table.insert(player.statuseffects, name)
+        print(name)
+        print(player.statuseffects)
+        for _, effect in ipairs(player.statuseffects) do
+            print(effect)
         end
     end
-    for _, effect in ipairs(player.statuseffects) do
-        newstats = player.effectupdate(effect, newstats)
-    end
 
-    newstats.movementspeed = newstats.movementspeed * (newstats.speedpercent / 100)
-    newstats.damage = newstats.damage * (newstats.damagepercent / 100)
-    player.stats = newstats
+    function player.calculatestats()
+        local newstats = {}
+        for key, value in pairs(player.base) do
+            newstats[key] = value
+        end
+        for _, item in pairs(player.items) do
+            for effect in pairs(item.effect) do
+                newstats[effect] = item.effect[effect] + newstats[effect]
+            end
+        end
+        for _, effect in ipairs(player.statuseffects) do
+            newstats = player.effectupdate(effect, newstats)
+        end
 
-    for _, item in ipairs(player.items) do
-        if item.bonus.type ~= nil then
-            player.bonusupdate(item.bonus.type, item.bonus.args)
+        newstats.movementspeed = newstats.movementspeed * (newstats.speedpercent / 100)
+        newstats.damage = newstats.damage * (newstats.damagepercent / 100)
+        player.stats = newstats
+
+        for _, item in ipairs(player.items) do
+            if item.bonus.type ~= nil then
+                player.bonusupdate(item.bonus.type, item.bonus.args)
+            end
         end
     end
-end
 
-function player.update(dt)
-    local w, h = love.graphics.getDimensions()
-    local _, direction = inputs.get_current_inputs(main.input_mode)
+    function player.update(dt)
+        local w, h = love.graphics.getDimensions()
+        local _, direction = inputs.get_current_inputs(main.input_mode, player.id)
 
-    player.calculatestats()
+        player.calculatestats()
 
-    player.x = player.x + direction.x * dt * player.stats.movementspeed -- Movement
-    player.y = player.y + direction.y * dt * player.stats.movementspeed
+        player.x = player.x + direction.x * dt * player.stats.movementspeed -- Movement
+        player.y = player.y + direction.y * dt * player.stats.movementspeed
 
-    if player.x < 0 then -- Border collision
-        player.x = 0
-    end
-    if player.x > w - player.size then
-        player.x = w - player.size
-    end
-    if player.y < 0 then
-        player.y = 0
-    end
-    if player.y > h - player.size then
-        player.y = h - player.size
-    end
+        if player.x < 0 then -- Border collision
+            player.x = 0
+        end
+        if player.x > w - player.size then
+            player.x = w - player.size
+        end
+        if player.y < 0 then
+            player.y = 0
+        end
+        if player.y > h - player.size then
+            player.y = h - player.size
+        end
 
-    player.hitx = player.x + (player.size - player.hitsize) / 2
-    player.hity = player.y + (player.size - player.hitsize) / 2
+        player.hitx = player.x + (player.size - player.hitsize) / 2
+        player.hity = player.y + (player.size - player.hitsize) / 2
 
-    if player.timer < 0 then -- Invincibilitytime
-        player.invincible = false
-        player.timer = 0
-    else
-    end
-    if player.invincible then
-        player.timer = player.timer - dt
-    end
-end
-
-function player.draw()
-    love.graphics.circle("fill", player.x + player.size / 2, player.y + player.size / 2, player.size / 2)
-
-    if main.debug then
-        if inputs.button_pressed("basic", main.input_mode) then
-            love.graphics.setColor(0.5, 0.5, 0.5)
-        elseif inputs.button_pressed("ability 1", main.input_mode) then
-            love.graphics.setColor(1, 0, 0)
-        elseif inputs.button_pressed("ability 2", main.input_mode) then
-            love.graphics.setColor(0, 1, 0)
-        elseif inputs.button_pressed("ability 3", main.input_mode) then
-            love.graphics.setColor(0, 0, 1)
-        elseif inputs.button_pressed("extra 1", main.input_mode) then
-            love.graphics.setColor(1, 1, 0)
-        elseif inputs.button_pressed("extra 2", main.input_mode) then
-            love.graphics.setColor(1, 0, 1)
-        elseif inputs.button_pressed("extra 3", main.input_mode) then
-            love.graphics.setColor(0, 1, 1)
-        elseif inputs.button_pressed("interact", main.input_mode) then
-            love.graphics.setColor(1, 1, 1)
+        if player.timer < 0 then -- Invincibilitytime
+            player.invincible = false
+            player.timer = 0
         else
-            love.graphics.setColor(0.8, 0.8, 0.8)
         end
-        love.graphics.setLineWidth(player.hitsize/3)
-        love.graphics.circle("line", player.x + player.size / 2, player.y + player.size / 2, player.hitsize)
-        love.graphics.setColor(0, 0, 1)
-
-        love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, 0, 60)
-        love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, 0, 75)
-        love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.stats.movementspeed, 0, 90)
-        love.graphics.print("Player Health: " .. player.health .. ", Player Shield: " .. player.shield .. ", Invincibility Time: " .. player.timer, 0, 105)
-    end
-end
-
-function player.effectupdate(type, newstats)
-    if type == "slowness" then
-        newstats.movementspeed = newstats.movementspeed * 0.8
-    end
-    if type == "speed_boost" then
-        newstats.movementspeed = newstats.movementspeed * 1.2
-    end
-    if type == "damage_boost" then
-        newstats.damagepercent = newstats.damagepercent * 1.2
-    end
-    if type == "invulnerability_boost" then
-        newstats.invincibilitytime = newstats.invincibilitytime * 1.2
-    end
-    if type == "cooldown_boost" then
-        newstats.cooldownreduce = ewstats.cooldownreduce * 1.2
-    end
-    if type == "dodge_boost" then
-        newstats.dodgechance = newstats.dodgechance * 1.2
+        if player.invincible then
+            player.timer = player.timer - dt
+        end
     end
 
-    return newstats
-end
+    function player.draw()
+        local actions, direction = inputs.get_current_inputs(main.input_mode, player.id)
 
-usedshield = 0
-usedheal = 0
-function player.bonusupdate(type, args)
-    if type == "shield" then
-        newshield = 0
-        for _, item in ipairs(player.items) do
-            if item.bonus.type == "shield" then
-                newshield = newshield + 1
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.circle("fill", player.x + player.size / 2, player.y + player.size / 2, player.size / 2)
+
+        if main.debug then
+            if inputs.button_pressed("basic", main.input_mode, player.id) then
+                love.graphics.setColor(0.5, 0.5, 0.5)
+            elseif inputs.button_pressed("ability 1", main.input_mode, player.id) then
+                love.graphics.setColor(1, 0, 0)
+            elseif inputs.button_pressed("ability 2", main.input_mode, player.id) then
+                love.graphics.setColor(0, 1, 0)
+            elseif inputs.button_pressed("ability 3", main.input_mode, player.id) then
+                love.graphics.setColor(0, 0, 1)
+            elseif inputs.button_pressed("extra 1", main.input_mode, player.id) then
+                love.graphics.setColor(1, 1, 0)
+            elseif inputs.button_pressed("extra 2", main.input_mode, player.id) then
+                love.graphics.setColor(1, 0, 1)
+            elseif inputs.button_pressed("extra 3", main.input_mode, player.id) then
+                love.graphics.setColor(0, 1, 1)
+            elseif inputs.button_pressed("interact", main.input_mode, player.id) then
+                love.graphics.setColor(1, 1, 1)
+            else
+                love.graphics.setColor(0.8, 0.8, 0.8)
             end
+            love.graphics.setLineWidth(player.hitsize/3)
+            love.graphics.circle("line", player.x + player.size / 2, player.y + player.size / 2, player.hitsize)
+            love.graphics.setColor(0, 0, 1)
+
+            local actions_str = table.concat(actions, ", ")
+
+            love.graphics.print("Actions: " .. actions_str, (id - 1) * 500, 45)
+            love.graphics.print("Direction: (" .. direction.x .. ", " .. direction.y .. ")", (id - 1) * 500, 30)
+            love.graphics.print("Player X: " .. player.x .. ", " .. "Player Y: " .. player.y, (id - 1) * 500, 60)
+            love.graphics.print("Player Hit X: " .. player.hitx .. ", " .. "Player Hit Y: " .. player.hity, (id - 1) * 500, 75)
+            love.graphics.print("Player Size: " .. player.size .. ", " .. "Player Speed: " .. player.stats.movementspeed, (id - 1) * 500, 90)
+            love.graphics.print("Player Health: " .. player.health .. ", Player Shield: " .. player.shield .. ", Invincibility Time: " .. player.timer, (id - 1) * 500, 105)
         end
-        newshield = math.max(0, newshield - usedshield)
-        player.shield = player.shield + args["1"] * newshield
-        usedshield = usedshield + newshield
     end
-    if type == "heal" then
-        newheal = 0
-        for _, item in ipairs(player.items) do
-            if item.bonus.type == "heal" then
-                newheal = newheal + 1
+
+    function player.effectupdate(type, newstats)
+        if type == "slowness" then
+            newstats.movementspeed = newstats.movementspeed * 0.8
+        end
+        if type == "speed_boost" then
+            newstats.movementspeed = newstats.movementspeed * 1.2
+        end
+        if type == "damage_boost" then
+            newstats.damagepercent = newstats.damagepercent * 1.2
+        end
+        if type == "invulnerability_boost" then
+            newstats.invincibilitytime = newstats.invincibilitytime * 1.2
+        end
+        if type == "cooldown_boost" then
+            newstats.cooldownreduce = ewstats.cooldownreduce * 1.2
+        end
+        if type == "dodge_boost" then
+            newstats.dodgechance = newstats.dodgechance * 1.2
+        end
+
+        return newstats
+    end
+
+    function player.bonusupdate(type, args)
+        if type == "shield" then
+            newshield = 0
+            for _, item in ipairs(player.items) do
+                if item.bonus.type == "shield" then
+                    newshield = newshield + 1
+                end
             end
+            newshield = math.max(0, newshield - player.usedshield)
+            player.shield = player.shield + args["1"] * newshield
+            player.usedshield = player.usedshield + newshield
         end
-        newheal = math.max(0, newheal - usedheal)
-        player.health = math.max(player.maxhealth, player.health + args["1"] * newheal)
-        usedheal = usedheal + newheal
+        if type == "heal" then
+            newheal = 0
+            for _, item in ipairs(player.items) do
+                if item.bonus.type == "heal" then
+                    newheal = newheal + 1
+                end
+            end
+            newheal = math.max(0, newheal - player.usedheal)
+            player.health = math.max(player.maxhealth, player.health + args["1"] * newheal)
+            player.usedheal = player.usedheal + newheal
+        end
     end
+    return player
 end
 
 return player
